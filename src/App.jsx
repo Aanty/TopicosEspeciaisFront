@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import Board from './components/Board';
 import CardModal from './components/CardModal';
+import PaginaMapa from './components/mapa/PaginaMapa';
 import { getCards, createCard, updateCard, moveCard, deleteCard } from './services/api';
 import './App.css';
 
 function App() {
+  const [aba, setAba] = useState('board');
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -87,20 +89,38 @@ function App() {
       <header className="app__header">
         <h1>Scrum Board</h1>
         <p>Arraste cards entre colunas para organizar suas tarefas</p>
+        <nav className="app__nav">
+          <button
+            className={`app__nav-btn ${aba === 'board' ? 'app__nav-btn--ativo' : ''}`}
+            onClick={() => setAba('board')}
+          >
+            📋 Board
+          </button>
+          <button
+            className={`app__nav-btn ${aba === 'mapa' ? 'app__nav-btn--ativo' : ''}`}
+            onClick={() => setAba('mapa')}
+          >
+            🗺️ Mapa de Animais
+          </button>
+        </nav>
       </header>
 
-      {error && <div className="app__error">{error}</div>}
+      {aba === 'board' && (
+        <>
+          {error && <div className="app__error">{error}</div>}
+          <Board
+            cards={cards}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onMove={handleMove}
+          />
+          <button className="fab" onClick={handleOpenCreate} title="Novo Card">
+            +
+          </button>
+        </>
+      )}
 
-      <Board
-        cards={cards}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onMove={handleMove}
-      />
-
-      <button className="fab" onClick={handleOpenCreate} title="Novo Card">
-        +
-      </button>
+      {aba === 'mapa' && <PaginaMapa />}
 
       <CardModal
         isOpen={modalOpen}

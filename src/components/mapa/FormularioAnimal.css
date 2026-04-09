@@ -1,0 +1,126 @@
+.formulario-animal {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.formulario-animal__header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-border);
+}
+
+.formulario-animal__header h3 {
+  font-size: 1rem;
+  color: var(--color-white);
+  margin: 0;
+}
+
+.formulario-animal__form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formulario-animal__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formulario-animal__campo label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.formulario-animal__campo input,
+.formulario-animal__campo textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  color: var(--color-white);
+  font-size: 0.9rem;
+  transition: border-color var(--transition);
+}
+
+.formulario-animal__campo input:focus,
+.formulario-animal__campo textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.formulario-animal__campo input::placeholder,
+.formulario-animal__campo textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.formulario-animal__campo input:disabled,
+.formulario-animal__campo textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.formulario-animal__campo textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.formulario-animal__erro {
+  padding: 10px 12px;
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: var(--radius);
+  color: #ff6b6b;
+  font-size: 0.85rem;
+}
+
+.formulario-animal__sucesso {
+  padding: 10px 12px;
+  background-color: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  border-radius: var(--radius);
+  color: #51cf66;
+  font-size: 0.85rem;
+}
+
+.formulario-animal__botao {
+  padding: 12px 20px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition), transform var(--transition);
+}
+
+.formulario-animal__botao:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.formulario-animal__botao:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .formulario-animal {
+    margin-top: 16px;
+  }
+  
+  .formulario-animal__form {
+    padding: 16px;
+    gap: 14px;
+  }
+}
