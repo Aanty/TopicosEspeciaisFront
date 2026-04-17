@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Board from './components/Board';
 import CardModal from './components/CardModal';
-import PaginaMapa from './components/mapa/PaginaMapa';
+import MapaBrasil from './components/mapa/MapaBrasil';
 import { getCards, createCard, updateCard, moveCard, deleteCard } from './services/api';
 import './App.css';
 
@@ -76,14 +76,6 @@ function App() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="app">
-        <div className="app__loading">Carregando board...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="app">
       <header className="app__header">
@@ -108,19 +100,23 @@ function App() {
       {aba === 'board' && (
         <>
           {error && <div className="app__error">{error}</div>}
-          <Board
-            cards={cards}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onMove={handleMove}
-          />
+          {loading ? (
+            <div className="app__loading">Carregando board...</div>
+          ) : (
+            <Board
+              cards={cards}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onMove={handleMove}
+            />
+          )}
           <button className="fab" onClick={handleOpenCreate} title="Novo Card">
             +
           </button>
         </>
       )}
 
-      {aba === 'mapa' && <PaginaMapa />}
+      {aba === 'mapa' && <MapaBrasil />}
 
       <CardModal
         isOpen={modalOpen}
