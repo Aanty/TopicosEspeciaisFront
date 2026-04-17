@@ -1,0 +1,282 @@
+.mapa-container {
+  width: 100%;
+  padding: 24px 20px 40px;
+}
+
+.mapa-brasil-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  align-items: stretch;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* ── Mapa ────────────────────────────────────────── */
+.box-mapa {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--color-surface), var(--color-border));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+#map {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+}
+
+#map .state {
+  cursor: pointer;
+  outline: none;
+}
+
+#map .state .shape {
+  stroke: #1a1a2e;
+  stroke-width: 0.6;
+  transition: fill var(--transition);
+}
+
+/* Cores suaves por região */
+#map .state.region-norte .shape        { fill: #a8d4b8; }
+#map .state.region-nordeste .shape     { fill: #e8c4a0; }
+#map .state.region-centro-oeste .shape { fill: #e8dca0; }
+#map .state.region-sudeste .shape      { fill: #c0b4dc; }
+#map .state.region-sul .shape          { fill: #d8b0b8; }
+
+#map .state:hover .shape,
+#map .state.hover .shape {
+  fill: #0288d1;
+}
+
+#map .state.active .shape {
+  fill: #fd7132;
+}
+
+#map .state .label_icon_state {
+  fill: #2a2a3a;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+#map .state:hover .label_icon_state,
+#map .state.hover .label_icon_state,
+#map .state.active .label_icon_state {
+  fill: #fff;
+}
+
+#map .state .icon_state {
+  stroke: #1a1a2e;
+  stroke-width: 0.8;
+  transition: fill var(--transition);
+}
+
+#map .state.region-norte .icon_state        { fill: #a8d4b8; }
+#map .state.region-nordeste .icon_state     { fill: #e8c4a0; }
+#map .state.region-centro-oeste .icon_state { fill: #e8dca0; }
+#map .state.region-sudeste .icon_state      { fill: #c0b4dc; }
+#map .state.region-sul .icon_state          { fill: #d8b0b8; }
+
+#map .state:hover .icon_state,
+#map .state.hover .icon_state {
+  fill: #0288d1;
+}
+
+#map .state.active .icon_state {
+  fill: #fd7132;
+}
+
+/* ── Seção de animais ────────────────────────────── */
+.mapa-animais {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+.mapa-animais__titulo {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 18px;
+}
+
+.mapa-animais__titulo span {
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.mapa-animais__msg,
+.mapa-animais__erro {
+  font-size: 0.9rem;
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.mapa-animais__erro {
+  color: var(--color-error);
+  background: rgba(244, 67, 54, 0.08);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius);
+}
+
+.mapa-animais__lista {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Card de animal ──────────────────────────────── */
+.animal-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition), border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.animal-card:hover,
+.animal-card--hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.animal-card__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--color-border);
+  display: block;
+}
+
+.animal-card__img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: var(--color-text-dim);
+}
+
+.animal-card__info {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.animal-card__nome {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.animal-card__cientifico {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.animal-card__estado {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 3px 10px;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 0.08em;
+}
+
+/* ── Form dentro do modal ────────────────────────── */
+.cadastro-animal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cadastro-animal-form__label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.cadastro-animal-form__label input,
+.cadastro-animal-form__label textarea {
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color var(--transition);
+}
+
+.cadastro-animal-form__label input:focus,
+.cadastro-animal-form__label textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.cadastro-animal-form__botao {
+  margin-top: 6px;
+  padding: 12px;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.cadastro-animal-form__botao:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.cadastro-animal-form__botao:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .mapa-brasil-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .mapa-animais {
+    max-height: 500px;
+  }
+}
