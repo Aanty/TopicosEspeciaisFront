@@ -219,6 +219,58 @@ function MapaBrasil() {
   return (
     <div className="mapa-container">
       <div className="mapa-brasil-layout">
+        <aside className="mapa-estado-hover">
+          <h3 className="mapa-estado-hover__titulo">
+            {estadoHover ? (
+              <>
+                {NOMES_ESTADOS[estadoHover]}
+                <span> ({(animaisPorEstado[estadoHover] || []).length})</span>
+              </>
+            ) : (
+              'Passe o mouse sobre um estado'
+            )}
+          </h3>
+
+          {estadoHover && (animaisPorEstado[estadoHover] || []).length === 0 && (
+            <p className="mapa-estado-hover__msg">
+              Nenhum animal cadastrado neste estado.
+            </p>
+          )}
+
+          {estadoHover && (animaisPorEstado[estadoHover] || []).length > 0 && (
+            <ul className="mapa-estado-hover__lista">
+              {(animaisPorEstado[estadoHover] || []).map((a) => (
+                <li
+                  key={a.Id}
+                  className="animal-card-mini"
+                  onClick={() => abrirEdicao(a)}
+                >
+                  {a.UrlImagem && a.UrlImagem.trim() !== '' && !imgErro[a.Id] ? (
+                    <img
+                      className="animal-card-mini__img"
+                      src={a.UrlImagem}
+                      alt={a.Nome || 'Animal'}
+                      onError={() => {
+                        setImgErro((p) => ({ ...p, [a.Id]: true }));
+                      }}
+                    />
+                  ) : (
+                    <div className="animal-card-mini__img animal-card-mini__img--placeholder">
+                      🐾
+                    </div>
+                  )}
+                  <div className="animal-card-mini__info">
+                    <p className="animal-card-mini__nome">{a.Nome}</p>
+                    {a.NomeCientifico && (
+                      <p className="animal-card-mini__cientifico">{a.NomeCientifico}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+
         <div className="box-mapa">
           <svg
             id="map"
