@@ -101,6 +101,18 @@ function MapaBrasil() {
     return map;
   }, [estados]);
 
+  const animaisPorEstado = useMemo(() => {
+    const map = {};
+    animais.forEach((animal) => {
+      const sigla = idToSigla[animal.EstadoId];
+      if (sigla) {
+        if (!map[sigla]) map[sigla] = [];
+        map[sigla].push(animal);
+      }
+    });
+    return map;
+  }, [animais, idToSigla]);
+
   const abrirCadastro = (sigla) => {
     setAnimalEditando(null);
     setEstadoSelecionado(sigla);
@@ -163,6 +175,36 @@ function MapaBrasil() {
     }
   };
 
+  const handleDelete = async (animalId, e) => {
+    e.stopPropagation(); // Evita abrir o modal de edição
+    
+    if (!confirm('Tem certeza que deseja excluir este animal?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/animais/${animalId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) throw new Error('Falha ao excluir');
+      
+      // Remove o animal da lista
+      setAnimais((prev) => prev.filter((a) => a.Id !== animalId));
+      
+      // Remove possível erro de imagem
+      setImgErro((p) => {
+        const next = { ...p };
+        delete next[animalId];
+        return next;
+      });
+      
+    } catch (err) {
+      console.error('Erro ao excluir animal:', err);
+      alert('Erro ao excluir animal.');
+    }
+  };
+
   const handleAnimalMouseEnter = (animal) => {
     setAnimalHover(animal.Id);
     const sigla = idToSigla[animal.EstadoId];
@@ -214,6 +256,15 @@ function MapaBrasil() {
                     <text className="label_icon_state" x={label.x} y={label.y}>
                       {sigla.toUpperCase()}
                     </text>
+                    {(animaisPorEstado[sigla] || []).length > 0 && (
+                      <circle
+                        className="animal-indicator"
+                        r="3"
+                        cx={label.x + 15}
+                        cy={label.y - 8}
+                        fill="#4CAF50"
+                      />
+                    )}
                   </g>
                 );
               })}
@@ -224,6 +275,12 @@ function MapaBrasil() {
         <aside className="mapa-animais">
           <h3 className="mapa-animais__titulo">
             Animais {animais.length > 0 && <span>({animais.length})</span>}
+            {estadoHover && (
+              <div className="mapa-animais__estado-info">
+                {NOMES_ESTADOS[estadoHover]}: 
+                <span>{(animaisPorEstado[estadoHover] || []).length} animal{(animaisPorEstado[estadoHover] || []).length !== 1 ? 'is' : ''}</span>
+              </div>
+            )}
           </h3>
 
           {loading && <p className="mapa-animais__msg">Carregando…</p>}
@@ -237,24 +294,38 @@ function MapaBrasil() {
           <ul className="mapa-animais__lista">
             {animais.map((a) => {
               const sigla = idToSigla[a.EstadoId];
+              const isFromHoveredState = estadoHover && sigla === estadoHover;
+              
               return (
                 <li
                   key={a.Id}
                   className={`animal-card ${
                     animalHover === a.Id ? 'animal-card--hover' : ''
+                  } ${
+                    isFromHoveredState ? 'animal-card--highlight' : ''
+                  } ${
+                    estadoHover && !isFromHoveredState ? 'animal-card--dimmed' : ''
                   }`}
                   onMouseEnter={() => handleAnimalMouseEnter(a)}
-                  onMouseLeave={handleAnimalMouseLeave}
+                  onMouseLeave={(e) => {
+                    const relatedTarget = e.relatedTarget;
+                    if (!relatedTarget || !relatedTarget.closest('.animal-card')) {
+                      setAnimalHover(null);
+                      if (!relatedTarget || !relatedTarget.closest('#map')) {
+                        setEstadoHover(null);
+                      }
+                    }
+                  }}
                   onClick={() => abrirEdicao(a)}
                 >
-                  {a.UrlImagem && !imgErro[a.Id] ? (
+                  {a.UrlImagem && a.UrlImagem.trim() !== '' && !imgErro[a.Id] ? (
                     <img
                       className="animal-card__img"
                       src={a.UrlImagem}
-                      alt={a.Nome}
-                      onError={() =>
-                        setImgErro((p) => ({ ...p, [a.Id]: true }))
-                      }
+                      alt={a.Nome || 'Animal'}
+                      onError={() => {
+                        setImgErro((p) => ({ ...p, [a.Id]: true }));
+                      }}
                     />
                   ) : (
                     <div className="animal-card__img animal-card__img--placeholder">
@@ -272,6 +343,13 @@ function MapaBrasil() {
                       </span>
                     )}
                   </div>
+                  <button 
+                    className="animal-card__delete"
+                    onClick={(e) => handleDelete(a.Id, e)}
+                    title="Excluir animal"
+                  >
+                    ×
+                  </button>
                 </li>
               );
             })}
