@@ -101,6 +101,18 @@ function MapaBrasil() {
     return map;
   }, [estados]);
 
+  const animaisPorEstado = useMemo(() => {
+    const map = {};
+    animais.forEach((animal) => {
+      const sigla = idToSigla[animal.EstadoId];
+      if (sigla) {
+        if (!map[sigla]) map[sigla] = [];
+        map[sigla].push(animal);
+      }
+    });
+    return map;
+  }, [animais, idToSigla]);
+
   const abrirCadastro = (sigla) => {
     setAnimalEditando(null);
     setEstadoSelecionado(sigla);
@@ -163,6 +175,36 @@ function MapaBrasil() {
     }
   };
 
+  const handleDelete = async (animalId, e) => {
+    e.stopPropagation(); // Evita abrir o modal de edição
+    
+    if (!confirm('Tem certeza que deseja excluir este animal?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/animais/${animalId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) throw new Error('Falha ao excluir');
+      
+      // Remove o animal da lista
+      setAnimais((prev) => prev.filter((a) => a.Id !== animalId));
+      
+      // Remove possível erro de imagem
+      setImgErro((p) => {
+        const next = { ...p };
+        delete next[animalId];
+        return next;
+      });
+      
+    } catch (err) {
+      console.error('Erro ao excluir animal:', err);
+      alert('Erro ao excluir animal.');
+    }
+  };
+
   const handleAnimalMouseEnter = (animal) => {
     setAnimalHover(animal.Id);
     const sigla = idToSigla[animal.EstadoId];
@@ -177,6 +219,58 @@ function MapaBrasil() {
   return (
     <div className="mapa-container">
       <div className="mapa-brasil-layout">
+        <aside className="mapa-estado-hover">
+          <h3 className="mapa-estado-hover__titulo">
+            {estadoHover ? (
+              <>
+                {NOMES_ESTADOS[estadoHover]}
+                <span> ({(animaisPorEstado[estadoHover] || []).length})</span>
+              </>
+            ) : (
+              'Passe o mouse sobre um estado'
+            )}
+          </h3>
+
+          {estadoHover && (animaisPorEstado[estadoHover] || []).length === 0 && (
+            <p className="mapa-estado-hover__msg">
+              Nenhum animal cadastrado neste estado.
+            </p>
+          )}
+
+          {estadoHover && (animaisPorEstado[estadoHover] || []).length > 0 && (
+            <ul className="mapa-estado-hover__lista">
+              {(animaisPorEstado[estadoHover] || []).map((a) => (
+                <li
+                  key={a.Id}
+                  className="animal-card-mini"
+                  onClick={() => abrirEdicao(a)}
+                >
+                  {a.UrlImagem && a.UrlImagem.trim() !== '' && !imgErro[a.Id] ? (
+                    <img
+                      className="animal-card-mini__img"
+                      src={a.UrlImagem}
+                      alt={a.Nome || 'Animal'}
+                      onError={() => {
+                        setImgErro((p) => ({ ...p, [a.Id]: true }));
+                      }}
+                    />
+                  ) : (
+                    <div className="animal-card-mini__img animal-card-mini__img--placeholder">
+                      🐾
+                    </div>
+                  )}
+                  <div className="animal-card-mini__info">
+                    <p className="animal-card-mini__nome">{a.Nome}</p>
+                    {a.NomeCientifico && (
+                      <p className="animal-card-mini__cientifico">{a.NomeCientifico}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+
         <div className="box-mapa">
           <svg
             id="map"
@@ -214,6 +308,15 @@ function MapaBrasil() {
                     <text className="label_icon_state" x={label.x} y={label.y}>
                       {sigla.toUpperCase()}
                     </text>
+                    {(animaisPorEstado[sigla] || []).length > 0 && (
+                      <circle
+                        className="animal-indicator"
+                        r="3"
+                        cx={label.x + 15}
+                        cy={label.y - 8}
+                        fill="#4CAF50"
+                      />
+                    )}
                   </g>
                 );
               })}
@@ -224,6 +327,12 @@ function MapaBrasil() {
         <aside className="mapa-animais">
           <h3 className="mapa-animais__titulo">
             Animais {animais.length > 0 && <span>({animais.length})</span>}
+            {estadoHover && (
+              <div className="mapa-animais__estado-info">
+                {NOMES_ESTADOS[estadoHover]}: 
+                <span>{(animaisPorEstado[estadoHover] || []).length} animal{(animaisPorEstado[estadoHover] || []).length !== 1 ? 'is' : ''}</span>
+              </div>
+            )}
           </h3>
 
           {loading && <p className="mapa-animais__msg">Carregando…</p>}
@@ -237,24 +346,38 @@ function MapaBrasil() {
           <ul className="mapa-animais__lista">
             {animais.map((a) => {
               const sigla = idToSigla[a.EstadoId];
+              const isFromHoveredState = estadoHover && sigla === estadoHover;
+              
               return (
                 <li
                   key={a.Id}
                   className={`animal-card ${
                     animalHover === a.Id ? 'animal-card--hover' : ''
+                  } ${
+                    isFromHoveredState ? 'animal-card--highlight' : ''
+                  } ${
+                    estadoHover && !isFromHoveredState ? 'animal-card--dimmed' : ''
                   }`}
                   onMouseEnter={() => handleAnimalMouseEnter(a)}
-                  onMouseLeave={handleAnimalMouseLeave}
+                  onMouseLeave={(e) => {
+                    const relatedTarget = e.relatedTarget;
+                    if (!relatedTarget || !relatedTarget.closest('.animal-card')) {
+                      setAnimalHover(null);
+                      if (!relatedTarget || !relatedTarget.closest('#map')) {
+                        setEstadoHover(null);
+                      }
+                    }
+                  }}
                   onClick={() => abrirEdicao(a)}
                 >
-                  {a.UrlImagem && !imgErro[a.Id] ? (
+                  {a.UrlImagem && a.UrlImagem.trim() !== '' && !imgErro[a.Id] ? (
                     <img
                       className="animal-card__img"
                       src={a.UrlImagem}
-                      alt={a.Nome}
-                      onError={() =>
-                        setImgErro((p) => ({ ...p, [a.Id]: true }))
-                      }
+                      alt={a.Nome || 'Animal'}
+                      onError={() => {
+                        setImgErro((p) => ({ ...p, [a.Id]: true }));
+                      }}
                     />
                   ) : (
                     <div className="animal-card__img animal-card__img--placeholder">
@@ -272,6 +395,13 @@ function MapaBrasil() {
                       </span>
                     )}
                   </div>
+                  <button 
+                    className="animal-card__delete"
+                    onClick={(e) => handleDelete(a.Id, e)}
+                    title="Excluir animal"
+                  >
+                    ×
+                  </button>
                 </li>
               );
             })}
