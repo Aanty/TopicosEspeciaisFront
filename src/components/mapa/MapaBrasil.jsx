@@ -71,6 +71,8 @@ function MapaBrasil() {
   const [formAnimal, setFormAnimal] = useState(FORM_INICIAL);
   const [salvando, setSalvando] = useState(false);
   const [imgErro, setImgErro] = useState({});
+  const [previewImagem, setPreviewImagem] = useState(null);
+  const [previewCarregando, setPreviewCarregando] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -117,6 +119,8 @@ function MapaBrasil() {
     setAnimalEditando(null);
     setEstadoSelecionado(sigla);
     setFormAnimal(FORM_INICIAL);
+    setPreviewImagem(null);
+    setPreviewCarregando(false);
   };
 
   const abrirEdicao = (animal) => {
@@ -130,11 +134,20 @@ function MapaBrasil() {
       descricao: animal.Descricao || '',
       urlImagem: animal.UrlImagem || '',
     });
+    // Definir preview da imagem existente
+    if (animal.UrlImagem && animal.UrlImagem.trim() !== '') {
+      setPreviewImagem(animal.UrlImagem);
+    } else {
+      setPreviewImagem(null);
+    }
+    setPreviewCarregando(false);
   };
 
   const fecharCadastro = () => {
     setEstadoSelecionado(null);
     setAnimalEditando(null);
+    setPreviewImagem(null);
+    setPreviewCarregando(false);
   };
 
   const handleSubmit = async (e) => {
@@ -214,6 +227,29 @@ function MapaBrasil() {
   const handleAnimalMouseLeave = () => {
     setAnimalHover(null);
     setEstadoHover(null);
+  };
+
+  const handleUrlImagemChange = (url) => {
+    setFormAnimal({ ...formAnimal, urlImagem: url });
+    
+    // Se há URL válida, configurar preview imediatamente
+    if (url && url.trim() !== '') {
+      setPreviewImagem(url);
+      setPreviewCarregando(true);
+    } else {
+      // Limpar preview se URL estiver vazia
+      setPreviewImagem(null);
+      setPreviewCarregando(false);
+    }
+  };
+
+  const handlePreviewLoad = () => {
+    setPreviewCarregando(false);
+  };
+
+  const handlePreviewError = () => {
+    setPreviewCarregando(false);
+    setPreviewImagem(null);
   };
 
   return (
@@ -463,12 +499,38 @@ function MapaBrasil() {
             <input
               type="url"
               value={formAnimal.urlImagem}
-              onChange={(e) =>
-                setFormAnimal({ ...formAnimal, urlImagem: e.target.value })
-              }
+              onChange={(e) => handleUrlImagemChange(e.target.value)}
               placeholder="https://..."
             />
           </label>
+
+          {/* Preview da imagem */}
+          {formAnimal.urlImagem && formAnimal.urlImagem.trim() !== '' && (
+            <div className="cadastro-animal-form__preview">
+              <label className="cadastro-animal-form__label">Preview:</label>
+              {previewCarregando && (
+                <div className="preview-loading">
+                  Carregando imagem...
+                </div>
+              )}
+              {previewImagem && !previewCarregando && (
+                <div className="preview-container">
+                  <img
+                    src={previewImagem}
+                    alt="Preview do animal"
+                    className="preview-image"
+                    onLoad={handlePreviewLoad}
+                    onError={handlePreviewError}
+                  />
+                </div>
+              )}
+              {!previewImagem && !previewCarregando && formAnimal.urlImagem && (
+                <div className="preview-error">
+                  ❌ Erro ao carregar imagem. Verifique se a URL está correta.
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             type="submit"
