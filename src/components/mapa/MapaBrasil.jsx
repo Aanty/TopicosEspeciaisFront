@@ -46,7 +46,7 @@ const ESTADOS = [
   { sigla: 'df', label: { x: 294, y: 255 }, icon: { cx: 301, cy: 251 } },
 ];
 
-const FORM_INICIAL = { nome: '', nomeCientifico: '', descricao: '', urlImagem: '' };
+const FORM_INICIAL = { nome: '', nomeCientifico: '', descricao: '', urlImagem: '', estadoId: '' };
 
 const REGIOES = {
   ac: 'norte', ap: 'norte', am: 'norte', pa: 'norte',
@@ -73,18 +73,34 @@ function MapaBrasil() {
   const [imgErro, setImgErro] = useState({});
   const [previewImagem, setPreviewImagem] = useState(null);
   const [previewCarregando, setPreviewCarregando] = useState(false);
+  const [modalCadastroLivre, setModalCadastroLivre] = useState(false);
 
   useEffect(() => {
+    console.log('Iniciando carregamento de dados...');
     Promise.all([
-      fetch(`${API_URL}/api/estados`).then((r) => r.json()),
-      fetch(`${API_URL}/api/animais`).then((r) => r.json()),
+      fetch(`${API_URL}/api/estados`).then((r) => {
+        console.log('Resposta estados:', r.status);
+        return r.json();
+      }),
+      fetch(`${API_URL}/api/animais`).then((r) => {
+        console.log('Resposta animais:', r.status);
+        return r.json();
+      }),
     ])
       .then(([estadosData, animaisData]) => {
+        console.log('Estados carregados:', estadosData);
+        console.log('Animais carregados:', animaisData);
         setEstados(estadosData);
         setAnimais(animaisData);
       })
-      .catch(() => setErroApi('Falha ao carregar dados. Verifique se a API está rodando.'))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.error('Erro ao carregar dados:', err);
+        setErroApi('Falha ao carregar dados. Verifique se a API está rodando.');
+      })
+      .finally(() => {
+        console.log('Carregamento finalizado');
+        setLoading(false);
+      });
   }, []);
 
   const siglaToEstado = useMemo(() => {
@@ -121,6 +137,16 @@ function MapaBrasil() {
     setFormAnimal(FORM_INICIAL);
     setPreviewImagem(null);
     setPreviewCarregando(false);
+    setModalCadastroLivre(false);
+  };
+
+  const abrirCadastroLivre = () => {
+    setAnimalEditando(null);
+    setEstadoSelecionado(null);
+    setFormAnimal({ ...FORM_INICIAL, estadoId: '' });
+    setPreviewImagem(null);
+    setPreviewCarregando(false);
+    setModalCadastroLivre(true);
   };
 
   const abrirEdicao = (animal) => {
@@ -148,12 +174,62 @@ function MapaBrasil() {
     setAnimalEditando(null);
     setPreviewImagem(null);
     setPreviewCarregando(false);
+    setModalCadastroLivre(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const estado = siglaToEstado[estadoSelecionado];
-    if (!estado) return;
+    
+    console.log('=== INICIO DO SUBMIT ===');
+    console.log('modalCadastroLivre:', modalCadastroLivre);
+    console.log('formAnimal:', formAnimal);
+    console.log('estados disponíveis:', estados);
+    console.log('loading:', loading);
+    
+    // Verificar se os estados foram carregados
+    if (loading || estados.length === 0) {
+      alert('Aguarde o carregamento dos estados ou recarregue a página.');
+      return;
+    }
+    
+    let estado;
+    
+    if (modalCadastroLivre) {
+      // Para cadastro livre, usar o estado selecionado no dropdown
+      if (!formAnimal.estadoId) {
+        alert('Por favor, selecione um estado para o animal.');
+        return;
+      }
+      console.log('Procurando estado com ID:', formAnimal.estadoId, 'tipo:', typeof formAnimal.estadoId);
+      
+      // Tentar encontrar o estado de diferentes formas
+      estado = estados.find(e => e.Id == formAnimal.estadoId) || 
+               estados.find(e => e.Id === parseInt(formAnimal.estadoId)) ||
+               estados.find(e => e.Id.toString() === formAnimal.estadoId.toString());
+      
+      console.log('Estado encontrado:', estado);
+      
+      if (!estado) {
+        console.error('Estados disponíveis:', estados.map(e => ({id: e.Id, nome: e.Nome})));
+        console.error('ID procurado:', formAnimal.estadoId);
+      }
+    } else {
+      // Para cadastro via clique no mapa
+      estado = siglaToEstado[estadoSelecionado];
+      console.log('Estado do mapa:', estado);
+    }
+      
+    if (!estado) {
+      console.error('ERRO: Estado não encontrado!');
+      alert('Estado não encontrado. Verifique se selecionou um estado válido.');
+      return;
+    }
+
+    // Validar campos obrigatórios
+    if (!formAnimal.nome || formAnimal.nome.trim() === '') {
+      alert('Por favor, preencha o nome do animal.');
+      return;
+    }
 
     setSalvando(true);
     try {
@@ -162,29 +238,61 @@ function MapaBrasil() {
         : `${API_URL}/api/animais`;
       const method = animalEditando ? 'PUT' : 'POST';
 
+      // Preparar dados para envio
+      const dadosAnimal = {
+        nome: formAnimal.nome.trim(),
+        nomeCientifico: formAnimal.nomeCientifico?.trim() || '',
+        descricao: formAnimal.descricao?.trim() || '',
+        urlImagem: formAnimal.urlImagem?.trim() || '',
+        estadoId: estado.Id.toString() // Converter para string como a API espera
+      };
+
+      console.log('URL da API:', url);
+      console.log('Método:', method);
+      console.log('Dados a enviar:', dadosAnimal);
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formAnimal, estadoId: estado.Id }),
+        body: JSON.stringify(dadosAnimal),
       });
-      if (!res.ok) throw new Error('Falha ao salvar');
+      
+      console.log('Status da resposta:', res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Erro da API (texto):', errorText);
+        throw new Error(`Falha ao salvar: ${res.status} - ${errorText}`);
+      }
+      
       const salvo = await res.json();
-      setAnimais((prev) =>
-        animalEditando
+      console.log('Animal salvo com sucesso:', salvo);
+      
+      setAnimais((prev) => {
+        const novosAnimais = animalEditando
           ? prev.map((a) => (a.Id === salvo.Id ? salvo : a))
-          : [...prev, salvo]
-      );
+          : [...prev, salvo];
+        console.log('Lista de animais atualizada:', novosAnimais);
+        return novosAnimais;
+      });
+      
       setImgErro((p) => {
         const next = { ...p };
         delete next[salvo.Id];
         return next;
       });
+      
+      console.log('Fechando modal...');
       fecharCadastro();
+      console.log('=== SUBMIT CONCLUÍDO COM SUCESSO ===');
     } catch (err) {
-      console.error(err);
-      alert('Erro ao salvar animal.');
+      console.error('=== ERRO NO SUBMIT ===');
+      console.error('Erro completo:', err);
+      console.error('Stack trace:', err.stack);
+      alert(`Erro ao salvar animal: ${err.message}`);
     } finally {
       setSalvando(false);
+      console.log('setSalvando(false) executado');
     }
   };
 
@@ -249,7 +357,7 @@ function MapaBrasil() {
 
   const handlePreviewError = () => {
     setPreviewCarregando(false);
-    setPreviewImagem(null);
+    // Não limpar a URL, apenas mostrar erro
   };
 
   return (
@@ -445,11 +553,24 @@ function MapaBrasil() {
         </aside>
       </div>
 
+      {/* Botão flutuante para cadastro livre - só aparece quando estados estão carregados */}
+      {!loading && estados.length > 0 && (
+        <button 
+          className="fab-cadastro"
+          onClick={abrirCadastroLivre}
+          title="Cadastrar novo animal"
+        >
+          +
+        </button>
+      )}
+
       <Modal
-        isOpen={!!estadoSelecionado}
+        isOpen={!!estadoSelecionado || modalCadastroLivre}
         onClose={fecharCadastro}
         title={
-          estadoSelecionado
+          modalCadastroLivre
+            ? `${animalEditando ? 'Editar' : 'Cadastrar'} Animal`
+            : estadoSelecionado
             ? `${animalEditando ? 'Editar' : 'Cadastrar'} Animal — ${
                 NOMES_ESTADOS[estadoSelecionado]
               }`
@@ -457,9 +578,33 @@ function MapaBrasil() {
         }
       >
         <form className="cadastro-animal-form" onSubmit={handleSubmit}>
-          <label className="cadastro-animal-form__label">
+          {modalCadastroLivre && (
+            <label className="cadastro-animal-form__label" htmlFor="estado-select">
+              Estado *
+              <select
+                id="estado-select"
+                name="estadoId"
+                value={formAnimal.estadoId || ''}
+                onChange={(e) =>
+                  setFormAnimal({ ...formAnimal, estadoId: e.target.value })
+                }
+                required
+              >
+                <option value="">Selecione um estado</option>
+                {estados.map((estado) => (
+                  <option key={estado.Id} value={estado.Id}>
+                    {estado.Nome} ({estado.Sigla})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <label className="cadastro-animal-form__label" htmlFor="nome-input">
             Nome *
             <input
+              id="nome-input"
+              name="nome"
               type="text"
               value={formAnimal.nome}
               onChange={(e) =>
@@ -471,9 +616,11 @@ function MapaBrasil() {
             />
           </label>
 
-          <label className="cadastro-animal-form__label">
+          <label className="cadastro-animal-form__label" htmlFor="nome-cientifico-input">
             Nome científico
             <input
+              id="nome-cientifico-input"
+              name="nomeCientifico"
               type="text"
               value={formAnimal.nomeCientifico}
               onChange={(e) =>
@@ -483,9 +630,11 @@ function MapaBrasil() {
             />
           </label>
 
-          <label className="cadastro-animal-form__label">
+          <label className="cadastro-animal-form__label" htmlFor="descricao-textarea">
             Descrição
             <textarea
+              id="descricao-textarea"
+              name="descricao"
               rows={3}
               value={formAnimal.descricao}
               onChange={(e) =>
@@ -494,9 +643,11 @@ function MapaBrasil() {
             />
           </label>
 
-          <label className="cadastro-animal-form__label">
+          <label className="cadastro-animal-form__label" htmlFor="url-imagem-input">
             URL da imagem
             <input
+              id="url-imagem-input"
+              name="urlImagem"
               type="url"
               value={formAnimal.urlImagem}
               onChange={(e) => handleUrlImagemChange(e.target.value)}
