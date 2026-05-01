@@ -78,27 +78,27 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app__header">
-        <h1>Scrum Board</h1>
-        <p>Arraste cards entre colunas para organizar suas tarefas</p>
-        <nav className="app__nav">
-          <button
-            className={`app__nav-btn ${aba === 'board' ? 'app__nav-btn--ativo' : ''}`}
-            onClick={() => setAba('board')}
-          >
-            📋 Board
-          </button>
-          <button
-            className={`app__nav-btn ${aba === 'mapa' ? 'app__nav-btn--ativo' : ''}`}
-            onClick={() => setAba('mapa')}
-          >
-            🗺️ Mapa de Animais
-          </button>
-        </nav>
-      </header>
-
       {aba === 'board' && (
         <>
+          <header className="app__header">
+            <h1>Wiki Brasil</h1>
+            <p>Cadastro de animais brasileiros</p>
+            <nav className="app__nav">
+              <button
+                className={`app__nav-btn ${aba === 'board' ? 'app__nav-btn--ativo' : ''}`}
+                onClick={() => setAba('board')}
+              >
+                📋 Board
+              </button>
+              <button
+                className={`app__nav-btn ${aba === 'mapa' ? 'app__nav-btn--ativo' : ''}`}
+                onClick={() => setAba('mapa')}
+              >
+                🗺️ Mapa de Animais
+              </button>
+            </nav>
+          </header>
+
           {error && <div className="app__error">{error}</div>}
           {loading ? (
             <div className="app__loading">Carregando board...</div>
@@ -116,7 +116,15 @@ function App() {
         </>
       )}
 
-      {aba === 'mapa' && <MapaBrasil />}
+      {aba === 'mapa' && (
+        <>
+          <header className="app__header app__header--mapa">
+            <h1>Wiki Brasil</h1>
+            <p>Cadastro de animais brasileiros</p>
+          </header>
+          <MapaBrasil />
+        </>
+      )}
 
       <CardModal
         isOpen={modalOpen}
