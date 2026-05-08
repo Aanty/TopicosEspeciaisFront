@@ -17,15 +17,58 @@
 
 .app__header h1 {
   font-size: 2.2rem;
-  color: var(--color-white);
+  /* Gradiente azul estiloso */
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #1e3c72 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 8px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  /* Efeito de brilho sutil */
+  text-shadow: 0 0 30px rgba(79, 172, 254, 0.3);
+  /* Animação suave */
+  animation: gradientShift 3s ease-in-out infinite alternate;
 }
 
 .app__header--mapa h1 {
   font-size: 2.8rem;
   margin-bottom: 12px;
+  /* Gradiente mais intenso para o mapa */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #4facfe 50%, #00f2fe 75%, #1e3c72 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* Efeito de brilho mais forte */
+  text-shadow: 0 0 40px rgba(79, 172, 254, 0.4), 0 0 60px rgba(0, 242, 254, 0.2);
+  /* Animação mais suave e elegante */
+  animation: gradientShift 4s ease-in-out infinite alternate;
+}
+
+/* Animação do gradiente */
+@keyframes gradientShift {
+  0% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    filter: hue-rotate(10deg) brightness(1.1);
+  }
+  100% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+}
+
+/* Efeito hover no título */
+.app__header h1:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+  filter: hue-rotate(15deg) brightness(1.2) saturate(1.2);
+}
+
+.app__header--mapa h1:hover {
+  transform: scale(1.03);
+  transition: transform 0.3s ease;
+  filter: hue-rotate(20deg) brightness(1.3) saturate(1.3);
 }
 
 .app__header p {
