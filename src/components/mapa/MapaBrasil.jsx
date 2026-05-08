@@ -131,15 +131,6 @@ function MapaBrasil() {
     return map;
   }, [animais, idToSigla]);
 
-  const abrirCadastro = (sigla) => {
-    setAnimalEditando(null);
-    setEstadoSelecionado(sigla);
-    setFormAnimal(FORM_INICIAL);
-    setPreviewImagem(null);
-    setPreviewCarregando(false);
-    setModalCadastroLivre(false);
-  };
-
   const abrirCadastroLivre = () => {
     setAnimalEditando(null);
     setEstadoSelecionado(null);
@@ -153,12 +144,13 @@ function MapaBrasil() {
     const sigla = idToSigla[animal.EstadoId];
     if (!sigla) return;
     setAnimalEditando(animal);
-    setEstadoSelecionado(sigla);
+    setEstadoSelecionado(null); // Não precisamos mais do estado selecionado para edição
     setFormAnimal({
       nome: animal.Nome || '',
       nomeCientifico: animal.NomeCientifico || '',
       descricao: animal.Descricao || '',
       urlImagem: animal.UrlImagem || '',
+      estadoId: animal.EstadoId // Incluir o estadoId para edição
     });
     // Definir preview da imagem existente
     if (animal.UrlImagem && animal.UrlImagem.trim() !== '') {
@@ -167,10 +159,10 @@ function MapaBrasil() {
       setPreviewImagem(null);
     }
     setPreviewCarregando(false);
+    setModalCadastroLivre(true); // Usar o mesmo modal
   };
 
   const fecharCadastro = () => {
-    setEstadoSelecionado(null);
     setAnimalEditando(null);
     setPreviewImagem(null);
     setPreviewCarregando(false);
@@ -194,29 +186,23 @@ function MapaBrasil() {
     
     let estado;
     
-    if (modalCadastroLivre) {
-      // Para cadastro livre, usar o estado selecionado no dropdown
-      if (!formAnimal.estadoId) {
-        alert('Por favor, selecione um estado para o animal.');
-        return;
-      }
-      console.log('Procurando estado com ID:', formAnimal.estadoId, 'tipo:', typeof formAnimal.estadoId);
-      
-      // Tentar encontrar o estado de diferentes formas
-      estado = estados.find(e => e.Id == formAnimal.estadoId) || 
-               estados.find(e => e.Id === parseInt(formAnimal.estadoId)) ||
-               estados.find(e => e.Id.toString() === formAnimal.estadoId.toString());
-      
-      console.log('Estado encontrado:', estado);
-      
-      if (!estado) {
-        console.error('Estados disponíveis:', estados.map(e => ({id: e.Id, nome: e.Nome})));
-        console.error('ID procurado:', formAnimal.estadoId);
-      }
-    } else {
-      // Para cadastro via clique no mapa
-      estado = siglaToEstado[estadoSelecionado];
-      console.log('Estado do mapa:', estado);
+    // Para cadastro ou edição, usar o estado selecionado no dropdown
+    if (!formAnimal.estadoId) {
+      alert('Por favor, selecione um estado para o animal.');
+      return;
+    }
+    console.log('Procurando estado com ID:', formAnimal.estadoId, 'tipo:', typeof formAnimal.estadoId);
+    
+    // Tentar encontrar o estado de diferentes formas
+    estado = estados.find(e => e.Id == formAnimal.estadoId) || 
+             estados.find(e => e.Id === parseInt(formAnimal.estadoId)) ||
+             estados.find(e => e.Id.toString() === formAnimal.estadoId.toString());
+    
+    console.log('Estado encontrado:', estado);
+    
+    if (!estado) {
+      console.error('Estados disponíveis:', estados.map(e => ({id: e.Id, nome: e.Nome})));
+      console.error('ID procurado:', formAnimal.estadoId);
     }
       
     if (!estado) {
@@ -365,25 +351,25 @@ function MapaBrasil() {
       <div className="mapa-brasil-layout">
         <aside className="mapa-estado-hover">
           <h3 className="mapa-estado-hover__titulo">
-            {estadoHover ? (
+            {estadoHover || estadoSelecionado ? (
               <>
-                {NOMES_ESTADOS[estadoHover]}
-                <span> ({(animaisPorEstado[estadoHover] || []).length})</span>
+                {NOMES_ESTADOS[estadoHover || estadoSelecionado]}
+                <span> ({(animaisPorEstado[estadoHover || estadoSelecionado] || []).length})</span>
               </>
             ) : (
-              'Passe o mouse sobre um estado'
+              'Passe o mouse ou clique em um estado'
             )}
           </h3>
 
-          {estadoHover && (animaisPorEstado[estadoHover] || []).length === 0 && (
+          {(estadoHover || estadoSelecionado) && (animaisPorEstado[estadoHover || estadoSelecionado] || []).length === 0 && (
             <p className="mapa-estado-hover__msg">
               Nenhum animal cadastrado neste estado.
             </p>
           )}
 
-          {estadoHover && (animaisPorEstado[estadoHover] || []).length > 0 && (
+          {(estadoHover || estadoSelecionado) && (animaisPorEstado[estadoHover || estadoSelecionado] || []).length > 0 && (
             <ul className="mapa-estado-hover__lista">
-              {(animaisPorEstado[estadoHover] || []).map((a) => (
+              {(animaisPorEstado[estadoHover || estadoSelecionado] || []).map((a) => (
                 <li
                   key={a.Id}
                   className="animal-card-mini"
@@ -436,6 +422,7 @@ function MapaBrasil() {
                     className={`state region-${REGIOES[sigla]} ${
                       destacado ? 'hover' : ''
                     }`}
+                    onClick={() => setEstadoSelecionado(sigla)}
                     onMouseEnter={() => setEstadoHover(sigla)}
                     onMouseLeave={() => setEstadoHover(null)}
                   >
@@ -470,10 +457,10 @@ function MapaBrasil() {
         <aside className="mapa-animais">
           <h3 className="mapa-animais__titulo">
             Animais {animais.length > 0 && <span>({animais.length})</span>}
-            {estadoHover && (
+            {(estadoHover || estadoSelecionado) && (
               <div className="mapa-animais__estado-info">
-                {NOMES_ESTADOS[estadoHover]}: 
-                <span>{(animaisPorEstado[estadoHover] || []).length} animal{(animaisPorEstado[estadoHover] || []).length !== 1 ? 'is' : ''}</span>
+                {NOMES_ESTADOS[estadoHover || estadoSelecionado]}: 
+                <span>{(animaisPorEstado[estadoHover || estadoSelecionado] || []).length} animal{(animaisPorEstado[estadoHover || estadoSelecionado] || []).length !== 1 ? 'is' : ''}</span>
               </div>
             )}
           </h3>
@@ -482,14 +469,15 @@ function MapaBrasil() {
           {erroApi && <p className="mapa-animais__erro">{erroApi}</p>}
           {!loading && !erroApi && animais.length === 0 && (
             <p className="mapa-animais__msg">
-              Nenhum animal cadastrado. Clique num estado no mapa para adicionar.
+              Nenhum animal cadastrado. Use o botão "+" para adicionar.
             </p>
           )}
 
           <ul className="mapa-animais__lista">
             {animais.map((a) => {
               const sigla = idToSigla[a.EstadoId];
-              const isFromHoveredState = estadoHover && sigla === estadoHover;
+              const estadoAtivo = estadoHover || estadoSelecionado;
+              const isFromActiveState = estadoAtivo && sigla === estadoAtivo;
               
               return (
                 <li
@@ -497,9 +485,9 @@ function MapaBrasil() {
                   className={`animal-card ${
                     animalHover === a.Id ? 'animal-card--hover' : ''
                   } ${
-                    isFromHoveredState ? 'animal-card--highlight' : ''
+                    isFromActiveState ? 'animal-card--highlight' : ''
                   } ${
-                    estadoHover && !isFromHoveredState ? 'animal-card--dimmed' : ''
+                    estadoAtivo && !isFromActiveState ? 'animal-card--dimmed' : ''
                   }`}
                   onMouseEnter={() => handleAnimalMouseEnter(a)}
                   onMouseLeave={(e) => {
@@ -564,40 +552,30 @@ function MapaBrasil() {
       )}
 
       <Modal
-        isOpen={!!estadoSelecionado || modalCadastroLivre}
+        isOpen={modalCadastroLivre}
         onClose={fecharCadastro}
-        title={
-          modalCadastroLivre
-            ? `${animalEditando ? 'Editar' : 'Cadastrar'} Animal`
-            : estadoSelecionado
-            ? `${animalEditando ? 'Editar' : 'Cadastrar'} Animal — ${
-                NOMES_ESTADOS[estadoSelecionado]
-              }`
-            : ''
-        }
+        title={`${animalEditando ? 'Editar' : 'Cadastrar'} Animal`}
       >
         <form className="cadastro-animal-form" onSubmit={handleSubmit}>
-          {modalCadastroLivre && (
-            <label className="cadastro-animal-form__label" htmlFor="estado-select">
-              Estado *
-              <select
-                id="estado-select"
-                name="estadoId"
-                value={formAnimal.estadoId || ''}
-                onChange={(e) =>
-                  setFormAnimal({ ...formAnimal, estadoId: e.target.value })
-                }
-                required
-              >
-                <option value="">Selecione um estado</option>
-                {estados.map((estado) => (
-                  <option key={estado.Id} value={estado.Id}>
-                    {estado.Nome} ({estado.Sigla})
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          <label className="cadastro-animal-form__label" htmlFor="estado-select">
+            Estado *
+            <select
+              id="estado-select"
+              name="estadoId"
+              value={formAnimal.estadoId || ''}
+              onChange={(e) =>
+                setFormAnimal({ ...formAnimal, estadoId: e.target.value })
+              }
+              required
+            >
+              <option value="">Selecione um estado</option>
+              {estados.map((estado) => (
+                <option key={estado.Id} value={estado.Id}>
+                  {estado.Nome} ({estado.Sigla})
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label className="cadastro-animal-form__label" htmlFor="nome-input">
             Nome *
