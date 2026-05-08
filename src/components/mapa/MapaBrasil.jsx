@@ -435,8 +435,7 @@ function MapaBrasil() {
                     aria-label={NOMES_ESTADOS[sigla]}
                     className={`state region-${REGIOES[sigla]} ${
                       destacado ? 'hover' : ''
-                    } ${estadoSelecionado === sigla ? 'active' : ''}`}
-                    onClick={() => abrirCadastro(sigla)}
+                    }`}
                     onMouseEnter={() => setEstadoHover(sigla)}
                     onMouseLeave={() => setEstadoHover(null)}
                   >
