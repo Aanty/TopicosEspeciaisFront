@@ -1,137 +1,16 @@
-import { useState, useEffect } from 'react';
-import Board from './components/Board';
-import CardModal from './components/CardModal';
 import MapaBrasil from './components/mapa/MapaBrasil';
-import { getCards, createCard, updateCard, moveCard, deleteCard } from './services/api';
 import './App.css';
 
 function App() {
-  const [aba, setAba] = useState('board');
-  const [cards, setCards] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingCard, setEditingCard] = useState(null);
-
-  const fetchCards = async () => {
-    try {
-      setError(null);
-      const data = await getCards();
-      setCards(data);
-    } catch (err) {
-      setError('Erro ao carregar cards. Verifique se o backend esta rodando.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCards();
-  }, []);
-
-  const handleOpenCreate = () => {
-    setEditingCard(null);
-    setModalOpen(true);
-  };
-
-  const handleEdit = (card) => {
-    setEditingCard(card);
-    setModalOpen(true);
-  };
-
-  const handleSave = async (cardData) => {
-    try {
-      if (editingCard) {
-        const updated = await updateCard(editingCard.id, cardData);
-        setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-      } else {
-        const created = await createCard(cardData);
-        setCards((prev) => [...prev, created]);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao salvar card.');
-    }
-  };
-
-  // Move card — usado pelo drag and drop E pelo modal
-  const handleMove = async (id, newStatus) => {
-    try {
-      const updated = await moveCard(id, newStatus);
-      setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao mover card.');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await deleteCard(id);
-      setCards((prev) => prev.filter((c) => c.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao deletar card.');
-    }
-  };
-
+  console.log('App carregado - versão mapa direto'); // Log para debug
   return (
     <div className="app">
-      {aba === 'board' && (
-        <>
-          <header className="app__header">
-            <h1>Wiki Brasil</h1>
-            <p>Cadastro de animais brasileiros</p>
-            <nav className="app__nav">
-              <button
-                className={`app__nav-btn ${aba === 'board' ? 'app__nav-btn--ativo' : ''}`}
-                onClick={() => setAba('board')}
-              >
-                📋 Board
-              </button>
-              <button
-                className={`app__nav-btn ${aba === 'mapa' ? 'app__nav-btn--ativo' : ''}`}
-                onClick={() => setAba('mapa')}
-              >
-                🗺️ Mapa de Animais
-              </button>
-            </nav>
-          </header>
-
-          {error && <div className="app__error">{error}</div>}
-          {loading ? (
-            <div className="app__loading">Carregando board...</div>
-          ) : (
-            <Board
-              cards={cards}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onMove={handleMove}
-            />
-          )}
-          <button className="fab" onClick={handleOpenCreate} title="Novo Card">
-            +
-          </button>
-        </>
-      )}
-
-      {aba === 'mapa' && (
-        <>
-          <header className="app__header app__header--mapa">
-            <h1>Wiki Brasil</h1>
-            <p>Cadastro de animais brasileiros</p>
-          </header>
-          <MapaBrasil />
-        </>
-      )}
-
-      <CardModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={handleSave}
-        editingCard={editingCard}
-      />
+      {/* Sempre mostrar o mapa diretamente */}
+      <header className="app__header app__header--mapa">
+        <h1>Wiki Brasil</h1>
+        <p>Cadastro de animais brasileiros</p>
+      </header>
+      <MapaBrasil />
     </div>
   );
 }

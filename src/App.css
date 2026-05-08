@@ -17,35 +17,101 @@
 
 .app__header h1 {
   font-size: 2.2rem;
-  /* Gradiente azul estiloso */
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #1e3c72 100%);
+  /* Gradiente azul oceânico premium */
+  background: linear-gradient(
+    45deg,
+    #0066ff 0%,
+    #00ccff 25%,
+    #0099ff 50%,
+    #3366ff 75%,
+    #0044cc 100%
+  );
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 8px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  /* Efeito de brilho sutil */
-  text-shadow: 0 0 30px rgba(79, 172, 254, 0.3);
-  /* Animação suave */
-  animation: gradientShift 3s ease-in-out infinite alternate;
+  font-weight: 800;
+  letter-spacing: 1px;
+  /* Múltiplas sombras para efeito de profundidade */
+  filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.4))
+          drop-shadow(0 0 20px rgba(0, 204, 255, 0.3))
+          drop-shadow(0 0 30px rgba(0, 153, 255, 0.2));
+  /* Animação fluida do gradiente */
+  animation: gradientFlow 4s ease-in-out infinite,
+             textGlow 2s ease-in-out infinite alternate;
+  /* Transição suave */
+  transition: all 0.3s ease;
 }
 
 .app__header--mapa h1 {
-  font-size: 2.8rem;
-  margin-bottom: 12px;
-  /* Gradiente mais intenso para o mapa */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #4facfe 50%, #00f2fe 75%, #1e3c72 100%);
+  font-size: 3.2rem;
+  margin-bottom: 16px;
+  /* Gradiente ainda mais rico para o mapa */
+  background: linear-gradient(
+    135deg,
+    #1e3c72 0%,
+    #2a5298 15%,
+    #4facfe 30%,
+    #00f2fe 45%,
+    #0099ff 60%,
+    #3366ff 75%,
+    #1e3c72 90%,
+    #0066ff 100%
+  );
+  background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  /* Efeito de brilho mais forte */
-  text-shadow: 0 0 40px rgba(79, 172, 254, 0.4), 0 0 60px rgba(0, 242, 254, 0.2);
-  /* Animação mais suave e elegante */
-  animation: gradientShift 4s ease-in-out infinite alternate;
+  font-weight: 900;
+  letter-spacing: 2px;
+  /* Efeito de brilho mais intenso */
+  filter: drop-shadow(0 0 15px rgba(79, 172, 254, 0.6))
+          drop-shadow(0 0 30px rgba(0, 242, 254, 0.4))
+          drop-shadow(0 0 45px rgba(30, 60, 114, 0.3));
+  /* Animações combinadas */
+  animation: gradientFlow 6s ease-in-out infinite,
+             textGlow 3s ease-in-out infinite alternate,
+             textPulse 4s ease-in-out infinite;
+  /* Transição suave */
+  transition: all 0.4s ease;
 }
 
-/* Animação do gradiente */
+/* Animações premium para o título */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes textGlow {
+  0% {
+    filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.4))
+            drop-shadow(0 0 20px rgba(0, 204, 255, 0.3))
+            drop-shadow(0 0 30px rgba(0, 153, 255, 0.2));
+  }
+  100% {
+    filter: drop-shadow(0 0 20px rgba(0, 102, 255, 0.6))
+            drop-shadow(0 0 40px rgba(0, 204, 255, 0.5))
+            drop-shadow(0 0 60px rgba(0, 153, 255, 0.4));
+  }
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
 @keyframes gradientShift {
   0% {
     filter: hue-rotate(0deg) brightness(1);
@@ -58,17 +124,34 @@
   }
 }
 
-/* Efeito hover no título */
+/* Efeitos hover premium */
 .app__header h1:hover {
-  transform: scale(1.05);
-  transition: transform 0.3s ease;
-  filter: hue-rotate(15deg) brightness(1.2) saturate(1.2);
+  transform: scale(1.08) translateY(-2px);
+  filter: drop-shadow(0 0 25px rgba(0, 102, 255, 0.8))
+          drop-shadow(0 0 50px rgba(0, 204, 255, 0.6))
+          drop-shadow(0 0 75px rgba(0, 153, 255, 0.4)) !important;
+  letter-spacing: 2px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app__header--mapa h1:hover {
-  transform: scale(1.03);
-  transition: transform 0.3s ease;
-  filter: hue-rotate(20deg) brightness(1.3) saturate(1.3);
+  transform: scale(1.05) translateY(-3px);
+  filter: drop-shadow(0 0 30px rgba(79, 172, 254, 0.9))
+          drop-shadow(0 0 60px rgba(0, 242, 254, 0.7))
+          drop-shadow(0 0 90px rgba(30, 60, 114, 0.5)) !important;
+  letter-spacing: 3px;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efeito de cursor */
+.app__header h1 {
+  cursor: pointer;
+  user-select: none;
+}
+
+.app__header--mapa h1 {
+  cursor: pointer;
+  user-select: none;
 }
 
 .app__header p {
