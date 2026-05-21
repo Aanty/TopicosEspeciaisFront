@@ -112,7 +112,7 @@
 }
 
 .mapa-animais__titulo span {
-  color: var(--color-primary);
+  color: var(--color-text-muted);
   font-weight: 700;
   margin-left: 4px;
 }
@@ -174,7 +174,7 @@
 
 .mapa-animais__estado-info {
   font-size: 0.85rem;
-  color: var(--color-primary);
+  color: var(--color-text-muted);
   font-weight: 600;
   margin-top: 4px;
 }
@@ -374,7 +374,7 @@
 }
 
 .mapa-estado-hover__titulo span {
-  color: var(--color-primary);
+  color: var(--color-text-muted);
   font-weight: 700;
   margin-left: 4px;
 }
