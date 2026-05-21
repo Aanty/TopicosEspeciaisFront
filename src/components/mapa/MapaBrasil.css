@@ -530,3 +530,88 @@
 .fab-cadastro:active {
   transform: scale(0.95);
 }
+
+/* ── Botão play nos cards de animal ────────────────────────── */
+.animal-card__play {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.85);
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), transform var(--transition);
+  margin-left: 4px;
+}
+
+.animal-card__play:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
+/* ── Modal de vídeo ────────────────────────────────────────── */
+.modal-video {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  width: 90vw;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-video__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-video__titulo {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.modal-video__body {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+}
+
+.modal-video__iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ── Preview de vídeo no formulário ────────────────────────── */
+.preview-video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  height: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.preview-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}

@@ -46,7 +46,7 @@ const ESTADOS = [
   { sigla: 'df', label: { x: 294, y: 255 }, icon: { cx: 301, cy: 251 } },
 ];
 
-const FORM_INICIAL = { nome: '', nomeCientifico: '', descricao: '', urlImagem: '', estadoId: '' };
+const FORM_INICIAL = { nome: '', nomeCientifico: '', descricao: '', urlImagem: '', urlVideo: '', estadoId: '' };
 
 const REGIOES = {
   ac: 'norte', ap: 'norte', am: 'norte', pa: 'norte',
@@ -74,6 +74,7 @@ function MapaBrasil() {
   const [previewImagem, setPreviewImagem] = useState(null);
   const [previewCarregando, setPreviewCarregando] = useState(false);
   const [modalCadastroLivre, setModalCadastroLivre] = useState(false);
+  const [modalVideo, setModalVideo] = useState(null);
 
   useEffect(() => {
     console.log('Iniciando carregamento de dados...');
@@ -150,6 +151,7 @@ function MapaBrasil() {
       nomeCientifico: animal.NomeCientifico || '',
       descricao: animal.Descricao || '',
       urlImagem: animal.UrlImagem || '',
+      urlVideo: animal.UrlVideo || '',
       estadoId: animal.EstadoId // Incluir o estadoId para edição
     });
     // Definir preview da imagem existente
@@ -230,6 +232,7 @@ function MapaBrasil() {
         nomeCientifico: formAnimal.nomeCientifico?.trim() || '',
         descricao: formAnimal.descricao?.trim() || '',
         urlImagem: formAnimal.urlImagem?.trim() || '',
+        urlVideo: formAnimal.urlVideo?.trim() || '',
         estadoId: estado.Id.toString() // Converter para string como a API espera
       };
 
@@ -318,6 +321,15 @@ function MapaBrasil() {
     if (sigla) setEstadoHover(sigla);
   };
 
+  const extrairVideoId = (url) =>
+    url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)+([\w-]{11})/)?.[1] || null;
+
+  const abrirVideo = (e, url) => {
+    e.stopPropagation();
+    const id = extrairVideoId(url);
+    if (id) setModalVideo(id);
+  };
+
   const handleAnimalMouseLeave = () => {
     setAnimalHover(null);
     setEstadoHover(null);
@@ -395,6 +407,15 @@ function MapaBrasil() {
                       <p className="animal-card-mini__cientifico">{a.NomeCientifico}</p>
                     )}
                   </div>
+                  {a.UrlVideo && a.UrlVideo.trim() !== '' && (
+                    <button
+                      className="animal-card__play"
+                      onClick={(e) => abrirVideo(e, a.UrlVideo)}
+                      title="Assistir vídeo"
+                    >
+                      ▶
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -526,6 +547,15 @@ function MapaBrasil() {
                       </span>
                     )}
                   </div>
+                  {a.UrlVideo && a.UrlVideo.trim() !== '' && (
+                    <button
+                      className="animal-card__play"
+                      onClick={(e) => abrirVideo(e, a.UrlVideo)}
+                      title="Assistir vídeo"
+                    >
+                      ▶
+                    </button>
+                  )}
                   <button 
                     className="animal-card__delete"
                     onClick={(e) => handleDelete(a.Id, e)}
@@ -549,6 +579,28 @@ function MapaBrasil() {
         >
           +
         </button>
+      )}
+
+      {/* Modal de vídeo */}
+      {modalVideo && (
+        <div className="modal-overlay" onClick={() => setModalVideo(null)}>
+          <div className="modal-video" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-video__header">
+              <span className="modal-video__titulo">Vídeo do Animal</span>
+              <button className="modal__close" onClick={() => setModalVideo(null)}>×</button>
+            </div>
+            <div className="modal-video__body">
+              <iframe
+                className="modal-video__iframe"
+                src={`https://www.youtube.com/embed/${modalVideo}?autoplay=1`}
+                title="Vídeo do animal"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       <Modal
@@ -659,6 +711,46 @@ function MapaBrasil() {
               )}
             </div>
           )}
+
+          <label className="cadastro-animal-form__label" htmlFor="url-video-input">
+            URL do vídeo (YouTube)
+            <input
+              id="url-video-input"
+              name="urlVideo"
+              type="url"
+              value={formAnimal.urlVideo}
+              onChange={(e) =>
+                setFormAnimal({ ...formAnimal, urlVideo: e.target.value })
+              }
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
+          </label>
+
+          {/* Preview do vídeo YouTube */}
+          {formAnimal.urlVideo && formAnimal.urlVideo.trim() !== '' && (() => {
+            const videoId = formAnimal.urlVideo.match(
+              /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/
+            )?.[1];
+            return videoId ? (
+              <div className="cadastro-animal-form__preview">
+                <label className="cadastro-animal-form__label">Preview do vídeo:</label>
+                <div className="preview-video-container">
+                  <iframe
+                    className="preview-video"
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    title="Preview do vídeo do animal"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="preview-error">
+                ❌ URL do YouTube inválida. Ex: https://www.youtube.com/watch?v=XXXXXXXXXXX
+              </div>
+            );
+          })()}
 
           <button
             type="submit"
